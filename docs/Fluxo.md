@@ -1,4 +1,4 @@
-# 🧩 SomoS Caixa
+# 🧩 SomoS_Sandbox
 
 ## 🌍 Visão Geral
 O **SomoS Caixa** é uma solução criada para o **Hackathon Brasília Mais TI 2025**, em parceria com a **CAIXA** e **IBM**, com o objetivo de **não deixar boas ideias se perderem**.  
