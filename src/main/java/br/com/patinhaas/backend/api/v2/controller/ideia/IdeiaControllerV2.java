@@ -29,14 +29,13 @@ public class IdeiaControllerV2 {
     @Autowired
     private IdeiaAssemblerV2 ideiaAssembler;
 
-    // ✅ Rotas específicas ANTES das com path variable
     @GetMapping("/listar")
     public List<IdeiaResponseDTO> listar() {
         List<Ideia> ideias = ideiaRepository.findAll();
         return ideiaAssembler.toListDTO(ideias);
     }
 
-    @PostMapping("/criar")
+    @PostMapping()
     @ResponseStatus(HttpStatus.CREATED)
     public IdeiaResponseDTO criar(@RequestBody @Valid IdeiaRequestDTO dto) {
         Ideia ideia = ideiaAssembler.toDomain(dto);
@@ -50,7 +49,6 @@ public class IdeiaControllerV2 {
         return ideiaAssembler.toListDTO(ideias);
     }
 
-    // ✅ Path variable por ÚLTIMO para não interceptar outras rotas
     @GetMapping("/{id}")
     public IdeiaResponseDTO buscarPorId(@PathVariable String id) {
         return ideiaAssembler.toDTO(ideiaService.findById(id));
