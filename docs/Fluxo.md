@@ -34,9 +34,9 @@ flowchart TD
 
     H --> J[Registro do Problema Categoria + Resumo JSON]
 
-    I --> K[Avaliação Inicial\nCategoria + Urgência + Impacto]
+    I --> K[Avaliação Inicial Categoria + Urgência + Impacto]
     J --> K
 
-    K --> L[Match Inteligente\n- Ideia ↔ Problema\n- Exibe duplicatas\n- Identifica gaps]
+    K --> L[Match Inteligente - Ideia ↔ Problema - Exibe duplicatas - Identifica gaps]
 
-    L --> M[Dashboard Final\nStatus, Categorias, Ligações]
+    L --> M[Dashboard Final Status, Categorias, Ligações]
