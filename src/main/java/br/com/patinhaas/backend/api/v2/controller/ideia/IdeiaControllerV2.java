@@ -4,6 +4,7 @@ import br.com.patinhaas.backend.api.v2.converter.IdeiaAssemblerV2;
 import br.com.patinhaas.backend.api.v2.converter.ProblemaAssemblerV2;
 import br.com.patinhaas.backend.api.v2.dto.IdeiaRequestDTO;
 import br.com.patinhaas.backend.api.v2.dto.IdeiaResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.IdeiasSemelhantesResponseDTO;
 import br.com.patinhaas.backend.api.v2.dto.ProblemaComIdeiasResponseDTO;
 import br.com.patinhaas.backend.domain.model.Ideia;
 import br.com.patinhaas.backend.domain.model.Problema;
@@ -103,15 +104,13 @@ public class IdeiaControllerV2 {
     }
 
     @GetMapping("/{id}/semelhantes")
-    public List<IdeiaResponseDTO> buscarIdeiasSemelhantes(@PathVariable String id) {
-        List<Ideia> ideiasSemelhantes = ideiaService.findSimilarIdeias(id);
-        return ideiaAssembler.toListDTO(ideiasSemelhantes);
+    public IdeiasSemelhantesResponseDTO buscarIdeiasSemelhantes(@PathVariable String id) {
+        return ideiaService.findSimilarIdeiasWithDetails(id, ideiaAssembler);
     }
 
     @PostMapping("/buscar-semelhantes")
-    public List<IdeiaResponseDTO> buscarIdeiasSemelhantesTexto(@RequestBody String textoDescricao) {
-        List<Ideia> ideiasSemelhantes = ideiaService.findSimilarIdeiasFromText(textoDescricao);
-        return ideiaAssembler.toListDTO(ideiasSemelhantes);
+    public IdeiasSemelhantesResponseDTO buscarIdeiasSemelhantesTexto(@RequestBody String textoDescricao) {
+        return ideiaService.findSimilarIdeiasFromTextWithDetails(textoDescricao, ideiaAssembler);
     }
 
     @DeleteMapping("/{id}")
