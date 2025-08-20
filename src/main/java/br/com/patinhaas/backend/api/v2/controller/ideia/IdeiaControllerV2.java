@@ -9,9 +9,6 @@ import br.com.patinhaas.backend.domain.repository.IdeiaRepository;
 import br.com.patinhaas.backend.domain.service.IdeiaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,10 +30,9 @@ public class IdeiaControllerV2 {
     private IdeiaAssemblerV2 ideiaAssembler;
 
     @GetMapping
-    public Page<IdeiaResponseDTO> listar(Pageable pageable) {
-        Page<Ideia> page = ideiaRepository.findAll(pageable);
-        List<IdeiaResponseDTO> ideias = ideiaAssembler.toListDTO(page.getContent());
-        return new PageImpl<>(ideias, pageable, page.getTotalElements());
+    public List<IdeiaResponseDTO> listar() {
+        List<Ideia> ideias = ideiaRepository.findAll();
+        return ideiaAssembler.toListDTO(ideias);
     }
 
     @GetMapping("/{id}")

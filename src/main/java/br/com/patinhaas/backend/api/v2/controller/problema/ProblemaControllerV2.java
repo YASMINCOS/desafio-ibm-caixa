@@ -9,9 +9,6 @@ import br.com.patinhaas.backend.domain.repository.ProblemaRepository;
 import br.com.patinhaas.backend.domain.service.ProblemaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,10 +30,9 @@ public class ProblemaControllerV2 {
     private ProblemaAssemblerV2 problemaAssembler;
 
     @GetMapping
-    public Page<ProblemaResponseDTO> listar(Pageable pageable) {
-        Page<Problema> page = problemaRepository.findAll(pageable);
-        List<ProblemaResponseDTO> problemas = problemaAssembler.toListDTO(page.getContent());
-        return new PageImpl<>(problemas, pageable, page.getTotalElements());
+    public List<ProblemaResponseDTO> listar() {
+        List<Problema> problemas = problemaRepository.findAll();
+        return problemaAssembler.toListDTO(problemas);
     }
 
     @GetMapping("/{id}")
