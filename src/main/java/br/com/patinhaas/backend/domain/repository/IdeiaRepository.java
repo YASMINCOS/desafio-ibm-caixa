@@ -26,4 +26,14 @@ public interface IdeiaRepository extends JpaRepository<Ideia, String>, JpaSpecif
 
     @Query("SELECT i FROM Ideia i WHERE i.status = :status AND i.categoria = :categoria")
     List<Ideia> findByStatusAndCategoria(@Param("status") Status status, @Param("categoria") CategoriaEnum categoria);
+
+    List<Ideia> findByNomeExperimentoContainingIgnoreCase(String nomeExperimento);
+
+    // Ou se preferir com @Query personalizada:
+    @Query("SELECT i FROM Ideia i WHERE LOWER(i.nomeExperimento) LIKE LOWER(CONCAT('%', :nome, '%'))")
+    List<Ideia> findByNomeExperimentoLike(@Param("nome") String nomeExperimento);
+
+    // Busca mais avançada por nome do experimento com status específico
+    @Query("SELECT i FROM Ideia i WHERE LOWER(i.nomeExperimento) LIKE LOWER(CONCAT('%', :nome, '%')) AND i.status = :status")
+    List<Ideia> findByNomeExperimentoLikeAndStatus(@Param("nome") String nomeExperimento, @Param("status") Status status);
 }

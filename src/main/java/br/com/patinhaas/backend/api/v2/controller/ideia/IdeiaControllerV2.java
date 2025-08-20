@@ -15,6 +15,7 @@ import br.com.patinhaas.backend.domain.service.ProblemaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -111,6 +112,18 @@ public class IdeiaControllerV2 {
     @PostMapping("/buscar-semelhantes")
     public IdeiasSemelhantesResponseDTO buscarIdeiasSemelhantesTexto(@RequestBody String textoDescricao) {
         return ideiaService.findSimilarIdeiasFromTextWithDetails(textoDescricao, ideiaAssembler);
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<IdeiaResponseDTO>> buscarPorNome(
+            @RequestParam("nome") String nomeExperimento) {
+
+        List<Ideia> ideias = ideiaService.findByNomeExperimento(nomeExperimento);
+        List<IdeiaResponseDTO> response = ideias.stream()
+                .map(ideiaAssembler::toDTO)
+                .collect(java.util.stream.Collectors.toList());
+
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")

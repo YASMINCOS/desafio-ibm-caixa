@@ -280,6 +280,62 @@ public class IdeiaService {
         return criterios;
     }
 
+    public List<Ideia> findByNomeExperimento(String nomeExperimento) {
+        if (nomeExperimento == null || nomeExperimento.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return ideiaRepository.findByNomeExperimentoContainingIgnoreCase(nomeExperimento.trim());
+    }
+
+    /**
+     * Busca ideias por nome do experimento com status específico
+     * @param nomeExperimento parte do nome do experimento
+     * @param status status da ideia
+     * @return lista de ideias filtradas
+     */
+    public List<Ideia> findByNomeExperimentoAndStatus(String nomeExperimento, Status status) {
+        if (nomeExperimento == null || nomeExperimento.trim().isEmpty()) {
+            return findByStatus(status);
+        }
+        return ideiaRepository.findByNomeExperimentoLikeAndStatus(nomeExperimento.trim(), status);
+    }
+
+    public List<Ideia> findIdeiasComFiltros(String nomeExperimento, Status status, CategoriaEnum categoria) {
+        // Se não há filtros, retorna todas
+        if ((nomeExperimento == null || nomeExperimento.trim().isEmpty()) &&
+                status == null && categoria == null) {
+            return findAll();
+        }
+
+        // Implementação usando Specifications ou Query customizada
+        List<Ideia> resultado = findAll();
+
+        // Filtro por nome
+        if (nomeExperimento != null && !nomeExperimento.trim().isEmpty()) {
+            String nomeLower = nomeExperimento.toLowerCase().trim();
+            resultado = resultado.stream()
+                    .filter(ideia -> ideia.getNomeExperimento() != null &&
+                            ideia.getNomeExperimento().toLowerCase().contains(nomeLower))
+                    .collect(Collectors.toList());
+        }
+
+        // Filtro por status
+        if (status != null) {
+            resultado = resultado.stream()
+                    .filter(ideia -> ideia.getStatus() == status)
+                    .collect(Collectors.toList());
+        }
+
+        // Filtro por categoria
+        if (categoria != null) {
+            resultado = resultado.stream()
+                    .filter(ideia -> ideia.getCategoria() == categoria)
+                    .collect(Collectors.toList());
+        }
+
+        return resultado;
+    }
+
     private List<String> getCriteriosMatchTexto(String texto, Ideia ideia) {
         List<String> criterios = new ArrayList<>();
 
