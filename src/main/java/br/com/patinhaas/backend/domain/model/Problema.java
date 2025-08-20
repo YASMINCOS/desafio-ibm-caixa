@@ -24,23 +24,17 @@ public class Problema {
     @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     private String id;
 
-    @NotBlank
     private String nome;
 
-    @NotBlank
     private String matricula;
 
-    @NotBlank
     private String unidade;
 
-    @NotBlank
     private String email;
 
-    @NotBlank
     @Column(name = "problema_descricao", length = 2000)
     private String problemaDescricao;
 
-    @NotBlank
     @Column(length = 1000)
     private String processo;
 
@@ -51,7 +45,6 @@ public class Problema {
     @Column(name = "impacto_financeiro", precision = 10, scale = 2)
     private BigDecimal impactoFinanceiro;
 
-    @NotBlank
     @Column(name = "tipo_solucao_esperada", length = 1000)
     private String tipoSolucaoEsperada;
 
