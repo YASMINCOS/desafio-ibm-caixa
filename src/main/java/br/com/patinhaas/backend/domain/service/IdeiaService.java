@@ -2,6 +2,7 @@ package br.com.patinhaas.backend.domain.service;
 
 import br.com.patinhaas.backend.domain.exception.IdeiaNotFoundException;
 import br.com.patinhaas.backend.domain.model.Ideia;
+import br.com.patinhaas.backend.domain.model.enums.CategoriaEnum;
 import br.com.patinhaas.backend.domain.model.enums.Status;
 import br.com.patinhaas.backend.domain.repository.IdeiaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,10 @@ public class IdeiaService {
 
     public List<Ideia> findByStatus(Status status) {
         return ideiaRepository.findByStatus(status);
+    }
+
+    public List<Ideia> findByStatusAndCategoria(Status status, CategoriaEnum categoria) {
+        return ideiaRepository.findByStatusAndCategoria(status, categoria);
     }
 
     @Transactional

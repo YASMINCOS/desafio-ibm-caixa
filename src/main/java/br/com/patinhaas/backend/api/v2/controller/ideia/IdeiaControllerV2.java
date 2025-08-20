@@ -1,12 +1,16 @@
 package br.com.patinhaas.backend.api.v2.controller.ideia;
 
 import br.com.patinhaas.backend.api.v2.converter.IdeiaAssemblerV2;
+import br.com.patinhaas.backend.api.v2.converter.ProblemaAssemblerV2;
 import br.com.patinhaas.backend.api.v2.dto.IdeiaRequestDTO;
 import br.com.patinhaas.backend.api.v2.dto.IdeiaResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.ProblemaComIdeiasResponseDTO;
 import br.com.patinhaas.backend.domain.model.Ideia;
+import br.com.patinhaas.backend.domain.model.Problema;
 import br.com.patinhaas.backend.domain.model.enums.Status;
 import br.com.patinhaas.backend.domain.repository.IdeiaRepository;
 import br.com.patinhaas.backend.domain.service.IdeiaService;
+import br.com.patinhaas.backend.domain.service.ProblemaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,6 +32,12 @@ public class IdeiaControllerV2 {
 
     @Autowired
     private IdeiaAssemblerV2 ideiaAssembler;
+
+    @Autowired
+    private ProblemaService problemaService;
+
+    @Autowired
+    private ProblemaAssemblerV2 problemaAssembler;
 
     @GetMapping("/listar")
     public List<IdeiaResponseDTO> listar() {
@@ -52,6 +62,17 @@ public class IdeiaControllerV2 {
     @GetMapping("/{id}")
     public IdeiaResponseDTO buscarPorId(@PathVariable String id) {
         return ideiaAssembler.toDTO(ideiaService.findById(id));
+    }
+
+    @GetMapping("/{id}/com-ideias")
+    public ProblemaComIdeiasResponseDTO buscarProblemaComIdeias(@PathVariable String id) {
+        Problema problema = problemaService.findById(id);
+        List<Ideia> ideiasRelacionadas = ideiaService.findByStatusAndCategoria(Status.ABERTO, problema.getCategoria());
+
+        return new ProblemaComIdeiasResponseDTO(
+                problemaAssembler.toDTO(problema),
+                ideiaAssembler.toListDTO(ideiasRelacionadas)
+        );
     }
 
     @PutMapping("/{id}")
