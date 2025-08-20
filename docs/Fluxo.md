@@ -1,7 +1,7 @@
 # 🧩 SomoS_Sandbox
 
 ## 🌍 Visão Geral
-O **SomoS Caixa** é uma solução criada para o **Hackathon Brasília Mais TI 2025**, em parceria com a **CAIXA** e **IBM**, com o objetivo de **não deixar boas ideias se perderem**.  
+A **SomoS_Sandbox** é uma solução criada para o **Hackathon Brasília Mais TI 2025**, em parceria com a **CAIXA** e **IBM**, com o objetivo de **não deixar boas ideias se perderem**.  
 
 A plataforma utiliza **Agentes de IA (Watsonx Orchestrate)** para transformar o fluxo do **Sandbox CAIXA** em um processo **escalável, inclusivo e transparente**, conectando **ideias ↔ problemas** e garantindo que cada colaborador tenha suas propostas avaliadas de forma justa e clara.
 
