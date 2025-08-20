@@ -102,6 +102,18 @@ public class IdeiaControllerV2 {
         ideiaService.updateAvaliacaoHumana(id, avaliacao);
     }
 
+    @GetMapping("/{id}/semelhantes")
+    public List<IdeiaResponseDTO> buscarIdeiasSemelhantes(@PathVariable String id) {
+        List<Ideia> ideiasSemelhantes = ideiaService.findSimilarIdeias(id);
+        return ideiaAssembler.toListDTO(ideiasSemelhantes);
+    }
+
+    @PostMapping("/buscar-semelhantes")
+    public List<IdeiaResponseDTO> buscarIdeiasSemelhantesTexto(@RequestBody String textoDescricao) {
+        List<Ideia> ideiasSemelhantes = ideiaService.findSimilarIdeiasFromText(textoDescricao);
+        return ideiaAssembler.toListDTO(ideiasSemelhantes);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletar(@PathVariable String id) {
