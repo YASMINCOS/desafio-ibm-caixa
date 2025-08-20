@@ -34,12 +34,10 @@ public class ProblemaRequestDTO {
     @NotBlank
     private String processo;
 
-    @NotNull
     private CategoriaEnum categoria;
 
     private BigDecimal impactoFinanceiro;
 
-    @NotBlank
     private String tipoSolucaoEsperada;
 
     private Integer impactoPessoas;
