@@ -1,8 +1,4 @@
--- ============================================
--- SCRIPT PARA CRIAR TABELAS COM CAMPOS NULL
--- ============================================
 
--- Criar tabela IDEIAS com campos mais flexíveis
 CREATE TABLE IF NOT EXISTS ideias
 (
     id                   VARCHAR(36) PRIMARY KEY,
