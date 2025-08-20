@@ -6,7 +6,9 @@ import Sidebar from "./sidebar";
 import DashboardStats from "./dashboardstats";
 import IdeasTable from "./ideastable";
 import ChatMessage from "./chatmessage";
-import IdeaCreationModal from './ideacreationmodal';
+import IdeaCreationModal from "./ideacreationmodal";
+import DashboardCards from "./dashboardcards";
+import QuickActionsPanel from "./quickactionspanel";
 
 // Types (inline para evitar problemas de import)
 interface Message {
@@ -534,21 +536,54 @@ export default function MainApp() {
 
   const renderContent = () => {
     switch (activeView) {
-      case "dashboard":
+      case 'dashboard':
         return (
-          <div className="p-8">
+          <div className="p-8 space-y-8">
             <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-gray-600">
-                Sistema integrado com IBM Watson Orchestrate
-              </p>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard de Ideias</h1>
+              <p className="text-gray-600">Visão estratégica para tomada de decisão rápida</p>
             </div>
-            <DashboardStats />
-            <IdeasTable
-              ideas={ideas.slice(0, 5)}
-              onView={(idea) => handleIdeaAction("view", idea)}
-              onEdit={(idea) => handleIdeaAction("edit", idea)}
-              onDelete={(idea) => handleIdeaAction("delete", idea)}
+            
+            {/* Painel de Ações Rápidas */}
+            <QuickActionsPanel 
+              insights={{
+                total: ideas.length + apiIdeas.length,
+                quickWins: ideas.filter(i => i.impact === 'Alto' && i.complexity === 'Baixa').length,
+                priorities: ideas.filter(i => i.impact === 'Alto' && i.urgency === 'Alta').length,
+                approvalRate: Math.round((ideas.filter(i => i.status === 'Aprovada').length / Math.max(ideas.length, 1)) * 100),
+                avgScore: Math.round(ideas.reduce((sum, i) => sum + calculateIdeaScore(i), 0) / Math.max(ideas.length, 1))
+              }}
+              onAction={(action) => {
+                switch (action) {
+                  case 'create':
+                    handleIdeaAction('create');
+                    break;
+                  case 'quick-wins':
+                    setActiveView('ideas');
+                    // Aplicar filtro de quick wins
+                    break;
+                  case 'priorities':
+                    setActiveView('ideas');
+                    // Aplicar filtro de prioridades
+                    break;
+                  case 'review':
+                    setActiveView('ideas');
+                    // Aplicar filtro de pendentes
+                    break;
+                }
+              }}
+            />
+            
+            {/* Cards de Ideias */}
+            <DashboardCards 
+              ideas={[...ideas, ...apiIdeas]} 
+              onIdeaClick={(idea) => {
+                console.log('Ideia selecionada:', idea);
+                // Abrir modal de detalhes ou navegar
+              }}
+              onIdeaAction={(action, idea) => {
+                handleIdeaAction(action, idea);
+              }}
             />
           </div>
         );
@@ -564,7 +599,7 @@ export default function MainApp() {
                 </p>
               </div>
               <button
-                onClick={() => handleIdeaAction('create')}
+                onClick={() => handleIdeaAction("create")}
                 className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-colors"
                 style={{ backgroundColor: "#005CAA" }}
               >
@@ -718,30 +753,30 @@ export default function MainApp() {
         return null;
     }
   };
-// Adicionar no estado do componente MainApp:
-const [isIdeaModalOpen, setIsIdeaModalOpen] = useState(false);
+  // Adicionar no estado do componente MainApp:
+  const [isIdeaModalOpen, setIsIdeaModalOpen] = useState(false);
 
-// Atualizar a função handleIdeaAction:
-const handleIdeaAction = (action: string, idea?: Idea) => {
-  if (action === 'create') {
-    setIsIdeaModalOpen(true);
-  } else if (idea) {
-    console.log(`${action} idea:`, idea);
-    // Implementar outras ações (view, edit, delete)
-  }
-};
+  // Atualizar a função handleIdeaAction:
+  const handleIdeaAction = (action: string, idea?: Idea) => {
+    if (action === "create") {
+      setIsIdeaModalOpen(true);
+    } else if (idea) {
+      console.log(`${action} idea:`, idea);
+      // Implementar outras ações (view, edit, delete)
+    }
+  };
 
-// Adicionar função para lidar com sucesso da criação:
-const handleIdeaCreationSuccess = (newIdea: any) => {
-  // Adicionar a nova ideia à lista
-  setIdeas(prev => [newIdea, ...prev]);
-  
-  // Mostrar notificação de sucesso
-  alert('Ideia criada com sucesso!');
-  
-  // Opcional: navegar para a aba de ideias
-  setActiveView('ideas');
-};
+  // Adicionar função para lidar com sucesso da criação:
+  const handleIdeaCreationSuccess = (newIdea: any) => {
+    // Adicionar a nova ideia à lista
+    setIdeas((prev) => [newIdea, ...prev]);
+
+    // Mostrar notificação de sucesso
+    alert("Ideia criada com sucesso!");
+
+    // Opcional: navegar para a aba de ideias
+    setActiveView("ideas");
+  };
 
   return (
     <div className="h-screen flex" style={{ backgroundColor: "#F6F6F6" }}>
@@ -774,14 +809,14 @@ const handleIdeaCreationSuccess = (newIdea: any) => {
 
       {/* Main Content */}
       <div className="flex-1 ml-64 mt-16 overflow-auto">{renderContent()}</div>
-        
+
       {/* Modal de Criação de Ideia */}
       <IdeaCreationModal
-      isOpen={isIdeaModalOpen}
-      onClose={() => setIsIdeaModalOpen(false)}
-      onSuccess={handleIdeaCreationSuccess}
-      currentUser={user}
-    />
+        isOpen={isIdeaModalOpen}
+        onClose={() => setIsIdeaModalOpen(false)}
+        onSuccess={handleIdeaCreationSuccess}
+        currentUser={user}
+      />
     </div>
   );
 }
