@@ -50,6 +50,7 @@ public class IdeiaControllerV2 {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public IdeiaResponseDTO criar(@RequestBody @Valid IdeiaRequestDTO dto) {
+
         Ideia ideia = ideiaAssembler.toDomain(dto);
         return ideiaAssembler.toDTO(ideiaService.save(ideia));
     }
