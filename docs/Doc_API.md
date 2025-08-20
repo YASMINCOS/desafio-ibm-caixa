@@ -56,8 +56,9 @@ GET
 
 POST
 
-*   **Criar ideia**: cadastra uma nova ideia no sistema.JSON{ "nomeProponente": "João Silva", "matricula Proponente": "123456", "unidade Proponente": "TI - Desenvolvimento", "nomeExperimento": "Sistema de Cache Inteligente", "equipe Envolvida": "Equipe de Backend, DevOps e QA", "desafio Problema": "Lentidão no sistema durante picos de acesso", "solucaoDescricao": "Implementação de sistema de cache distribuído com Redis", "metodologia Execucao": "Desenvolvimento incremental com testes A/B", "hipotese Principal": "Cache distribuído reduzirá tempo de resposta em 70%", "horizontelnovacao": "Curto", "baselineAtual": "Tempo médio de resposta: 2.5 segundos", "resultados Esperados": "Redução para 0.8 segundos no tempo de resposta", "kpisSmart": "Tempo de resposta < 1s em 95% das requisições", "categoria": "OPERACIONAL", "avaliacaolA": "Proposta tecnicamente viável com alto impacto", "avaliacaoHumana": "Aprovada para desenvolvimento"}
-    
+*   **Criar ideia**:```json
+*    cadastra uma nova ideia no sistema.JSON{ "nomeProponente": "João Silva", "matricula Proponente": "123456", "unidade Proponente": "TI - Desenvolvimento", "nomeExperimento": "Sistema de Cache Inteligente", "equipe Envolvida": "Equipe de Backend, DevOps e QA", "desafio Problema": "Lentidão no sistema durante picos de acesso", "solucaoDescricao": "Implementação de sistema de cache distribuído com Redis", "metodologia Execucao": "Desenvolvimento incremental com testes A/B", "hipotese Principal": "Cache distribuído reduzirá tempo de resposta em 70%", "horizontelnovacao": "Curto", "baselineAtual": "Tempo médio de resposta: 2.5 segundos", "resultados Esperados": "Redução para 0.8 segundos no tempo de resposta", "kpisSmart": "Tempo de resposta < 1s em 95% das requisições", "categoria": "OPERACIONAL", "avaliacaolA": "Proposta tecnicamente viável com alto impacto", "avaliacaoHumana": "Aprovada para desenvolvimento"}
+    ´´´
     *   **JSON**:
         
 
