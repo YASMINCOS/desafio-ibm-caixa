@@ -1,7 +1,7 @@
-# 🧩 IdeAcesso – Sandbox CAIXA Inteligente
+# 🧩 SomoS Caixa
 
 ## 🌍 Visão Geral
-O **IdeAcesso** é uma solução criada para o **Hackathon Brasília Mais TI 2025**, em parceria com a **CAIXA** e **IBM**, com o objetivo de **não deixar boas ideias se perderem**.  
+O **SomoS Caixa** é uma solução criada para o **Hackathon Brasília Mais TI 2025**, em parceria com a **CAIXA** e **IBM**, com o objetivo de **não deixar boas ideias se perderem**.  
 
 A plataforma utiliza **Agentes de IA (Watsonx Orchestrate)** para transformar o fluxo do **Sandbox CAIXA** em um processo **escalável, inclusivo e transparente**, conectando **ideias ↔ problemas** e garantindo que cada colaborador tenha suas propostas avaliadas de forma justa e clara.
 
@@ -22,17 +22,17 @@ flowchart TD
 
     A[Início: Usuário acessa sistema] --> B{Escolher fluxo}
     
-    B -->|Cadastrar Ideia| C[Agente de Ideias\nPerguntas guiadas]
-    B -->|Registrar Problema| G[Agente de Problemas\nPerguntas guiadas]
+    B -->|Cadastrar Ideia| C[Agente de Ideias Perguntas guiadas]
+    B -->|Registrar Problema| G[Agente de Problemas Perguntas guiadas]
 
     C --> D[Validação da Ideia]
     G --> H[Validação do Problema]
 
-    D --> E[Agente verifica duplicatas\n+ busca na internet]
-    E --> F[Agente de Ideias Semelhantes\nConsulta base de Problemas]
-    F --> I[Registro da Ideia\nStatus=EM_TRIAGEM\nResumo JSON]
+    D --> E[Agente verifica duplicatas + busca na internet]
+    E --> F[Agente de Ideias Semelhantes Consulta base de Problemas]
+    F --> I[Registro da Ideia Status=EM_TRIAGEM Resumo JSON]
 
-    H --> J[Registro do Problema\nCategoria + Resumo JSON]
+    H --> J[Registro do Problema Categoria + Resumo JSON]
 
     I --> K[Avaliação Inicial\nCategoria + Urgência + Impacto]
     J --> K
