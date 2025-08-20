@@ -23,5 +23,4 @@ flowchart TD
     K --> L[Match Inteligente\n- Ideia ↔ Problema\n- Exibe duplicatas\n- Identifica gaps]
 
     L --> M[Dashboard Final\nStatus, Categorias, Ligações]
-mermaid´´´
 
