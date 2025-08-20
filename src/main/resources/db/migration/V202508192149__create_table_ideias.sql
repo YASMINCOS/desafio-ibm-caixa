@@ -18,7 +18,7 @@ CREATE TABLE ideias
     status               VARCHAR(50)  NOT NULL    DEFAULT 'ABERTO',
     avaliacao_ia         TEXT,
     avaliacao_humana     TEXT,
-    data_criacao         TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT ck_ideia_categoria CHECK (categoria IN
                                          ('OPERACIONAL', 'TECNOLOGICA', 'ATENDIMENTO', 'COMPLIANCE', 'GESTAO',
