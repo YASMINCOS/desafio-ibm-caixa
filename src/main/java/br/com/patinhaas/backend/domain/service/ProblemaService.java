@@ -35,9 +35,11 @@ public class ProblemaService {
 
     @Transactional
     public Problema save(Problema problema) {
-        return problemaRepository.save(problema);
+        Problema saved = problemaRepository.save(problema);
+        // Adicione um log aqui para debug
+        System.out.println("Problema salvo com ID: " + saved.getId());
+        return saved;
     }
-
     @Transactional
     public Problema update(Problema problema) {
         return problemaRepository.save(problema);

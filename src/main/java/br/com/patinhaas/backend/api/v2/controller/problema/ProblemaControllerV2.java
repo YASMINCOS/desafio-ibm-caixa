@@ -62,8 +62,15 @@ public class ProblemaControllerV2 {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ProblemaResponseDTO criar(@RequestBody @Valid ProblemaRequestDTO dto) {
+        System.out.println("Recebendo request: " + dto);
+
         Problema problema = problemaAssembler.toDomain(dto);
-        return problemaAssembler.toDTO(problemaService.save(problema));
+        System.out.println("Problema convertido: " + problema);
+
+        Problema saved = problemaService.save(problema);
+        System.out.println("Problema salvo: " + saved);
+
+        return problemaAssembler.toDTO(saved);
     }
 
     @PutMapping("/{id}")
