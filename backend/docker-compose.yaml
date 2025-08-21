@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    env_file:
+      - mysql.env
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - patinhaas-network
+
+  patinhaas-auth:
+    image: patinhaas-auth
+    command: ["/wait-for-it.sh", "-t", "30", "mysql:3306", "--", "java", "-jar", "app.jar"]
+    ports:
+      - "8081:8081"
+    env_file:
+      - auth.env
+    networks:
+      - patinhaas-network
+    depends_on:
+      - mysql
+
+
+  patinhaas-api:
+    command: ["/wait-for-it.sh", "-t", "30", "mysql:3306", "--", "java", "-Djava.awt.headless=true", "-Dfile.encoding=UTF-8", "-jar", "app.jar"]
+    ports:
+      - "8080:8080"
+    build: .
+    env_file:
+      - api.env
+    networks:
+      - patinhaas-network
+    volumes:
+      - ${UPLOADS_PATH}:/uploads
+    depends_on:
+      - mysql
+
+  patinhaas-frontend:
+    image: patinhaas-web
+    networks:
+      - patinhaas-network
+    restart: unless-stopped
+    depends_on:
+      - patinhaas-api
+
+  proxy:
+    build: ./nginx
+    image: patinhaas-proxy
+    ports:
+      - "80:80"
+    networks:
+      - patinhaas-network
+    depends_on:
+      - patinhaas-api
+      - patinhaas-auth
+
+networks:
+  patinhaas-network:
+
+volumes:
+  mysql-data:
+
