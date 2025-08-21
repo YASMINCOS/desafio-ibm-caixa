@@ -1,0 +1,134 @@
+package br.com.patinhaas.backend.api.v2.controller.ideia;
+
+import br.com.patinhaas.backend.api.v2.converter.IdeiaAssemblerV2;
+import br.com.patinhaas.backend.api.v2.converter.ProblemaAssemblerV2;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiaRequestDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiaResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiasSemelhantesResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.ProblemaComIdeiasResponseDTO;
+import br.com.patinhaas.backend.domain.model.Ideia;
+import br.com.patinhaas.backend.domain.model.Problema;
+import br.com.patinhaas.backend.domain.model.enums.Status;
+import br.com.patinhaas.backend.domain.repository.IdeiaRepository;
+import br.com.patinhaas.backend.domain.service.IdeiaService;
+import br.com.patinhaas.backend.domain.service.ProblemaService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+import static br.com.patinhaas.backend.infra.web.PatinhasMediaType.V2_APPLICATION_JSON_VALUE;
+
+@RestController
+@RequestMapping(value = "/ideias", produces = V2_APPLICATION_JSON_VALUE)
+public class IdeiaControllerV2 {
+
+    @Autowired
+    private IdeiaRepository ideiaRepository;
+
+    @Autowired
+    private IdeiaService ideiaService;
+
+    @Autowired
+    private IdeiaAssemblerV2 ideiaAssembler;
+
+    @Autowired
+    private ProblemaService problemaService;
+
+    @Autowired
+    private ProblemaAssemblerV2 problemaAssembler;
+
+    @GetMapping("/listar")
+    public List<IdeiaResponseDTO> listar() {
+        List<Ideia> ideias = ideiaRepository.findAll();
+        return ideiaAssembler.toListDTO(ideias);
+    }
+
+    @PostMapping()
+    @ResponseStatus(HttpStatus.CREATED)
+    public IdeiaResponseDTO criar(@RequestBody @Valid IdeiaRequestDTO dto) {
+        Ideia ideia = ideiaAssembler.toDomain(dto);
+        return ideiaAssembler.toDTO(ideiaService.save(ideia));
+    }
+
+    @GetMapping("/status/{status}")
+    public List<IdeiaResponseDTO> buscarPorStatus(@PathVariable String status) {
+        Status statusEnum = Status.valueOf(status.toUpperCase());
+        List<Ideia> ideias = ideiaService.findByStatus(statusEnum);
+        return ideiaAssembler.toListDTO(ideias);
+    }
+
+    @GetMapping("/{id}")
+    public IdeiaResponseDTO buscarPorId(@PathVariable String id) {
+        return ideiaAssembler.toDTO(ideiaService.findById(id));
+    }
+
+    @GetMapping("/{id}/com-ideias")
+    public ProblemaComIdeiasResponseDTO buscarProblemaComIdeias(@PathVariable String id) {
+        Problema problema = problemaService.findById(id);
+        List<Ideia> ideiasRelacionadas = ideiaService.findByStatusAndCategoria(Status.ABERTO, problema.getCategoria());
+
+        return new ProblemaComIdeiasResponseDTO(
+                problemaAssembler.toDTO(problema),
+                ideiaAssembler.toListDTO(ideiasRelacionadas)
+        );
+    }
+
+    @PutMapping("/{id}")
+    public IdeiaResponseDTO atualizar(@PathVariable String id,
+                                      @RequestBody @Valid IdeiaRequestDTO dto) {
+        Ideia ideiaSave = ideiaService.findById(id);
+        ideiaAssembler.copyToDomain(dto, ideiaSave);
+        return ideiaAssembler.toDTO(ideiaService.update(ideiaSave));
+    }
+
+    @PutMapping("/{id}/status")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void atualizarStatus(@PathVariable String id, @RequestParam String status) {
+        Status statusEnum = Status.valueOf(status.toUpperCase());
+        ideiaService.updateStatus(id, statusEnum);
+    }
+
+    @PutMapping("/{id}/avaliacao-ia")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void atualizarAvaliacaoIA(@PathVariable String id, @RequestBody String avaliacao) {
+        ideiaService.updateAvaliacaoIA(id, avaliacao);
+    }
+
+    @PutMapping("/{id}/avaliacao-humana")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void atualizarAvaliacaoHumana(@PathVariable String id, @RequestBody String avaliacao) {
+        ideiaService.updateAvaliacaoHumana(id, avaliacao);
+    }
+
+    @GetMapping("/{id}/semelhantes")
+    public IdeiasSemelhantesResponseDTO buscarIdeiasSemelhantes(@PathVariable String id) {
+        return ideiaService.findSimilarIdeiasWithDetails(id, ideiaAssembler);
+    }
+
+    @PostMapping("/buscar-semelhantes")
+    public IdeiasSemelhantesResponseDTO buscarIdeiasSemelhantesTexto(@RequestBody String textoDescricao) {
+        return ideiaService.findSimilarIdeiasFromTextWithDetails(textoDescricao, ideiaAssembler);
+    }
+
+    @GetMapping("/buscar")
+    public ResponseEntity<List<IdeiaResponseDTO>> buscarPorNome(
+            @RequestParam("nome") String nomeExperimento) {
+
+        List<Ideia> ideias = ideiaService.findByNomeExperimento(nomeExperimento);
+        List<IdeiaResponseDTO> response = ideias.stream()
+                .map(ideiaAssembler::toDTO)
+                .collect(java.util.stream.Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletar(@PathVariable String id) {
+        ideiaService.delete(id);
+    }
+}
