@@ -84,5 +84,25 @@ cd desafio-ibm-caixa/backend
 
 # Executar aplicação
 ./mvnw spring-boot:run
+```
+## 💻 Frontend
 
+O frontend foi desenvolvido em **Next JS**
+
+
+
+### ▶️ Como executar
+
+```bash
+# Clonar o repositório
+git clone https://github.com/YASMINCOS/desafio-ibm-caixa.git
+
+# Entrar no diretório hopper
+cd desafio-ibm-caixa/hopper
+
+# Executar aplicação
+npm install 
+
+npm run dev
+```
 
