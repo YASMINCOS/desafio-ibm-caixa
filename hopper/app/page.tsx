@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import MainApp from "./_components/mainapp";
+import TestWatsonxPage from "./_components";
 
 export const metadata: Metadata = {
   title: "Sandbox CAIXA - Sistema de Ideias e Inovação",

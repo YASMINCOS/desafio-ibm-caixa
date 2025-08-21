@@ -1,307 +1,59 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { Send, Bot, Plus, AlertTriangle, BarChart3 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bot, Plus, AlertTriangle, BarChart3 } from "lucide-react";
 import Sidebar from "./sidebar";
-import DashboardStats from "./dashboardstats";
+import Dashboard from "./dashboard";
+import Chat from "./chat";
 import IdeasTable from "./ideastable";
-import ChatMessage from "./chatmessage";
-import IdeaCreationModal from "./ideacreationmodal";
-import DashboardCards from "./dashboardcards";
-import QuickActionsPanel from "./quickactionspanel";
+import WatsonChatService from "./watsonchatservice";
+import { Idea, Message, Problem, User } from "../_types";
 
-// Types (inline para evitar problemas de import)
-interface Message {
-  id: number;
-  type: "user" | "agent";
-  content: string;
-  timestamp: Date;
-  confidence?: number;
+// Importação dinâmica do WatsonxChat para evitar problemas de SSR
+import dynamic from "next/dynamic";
+import ProblemTable from "./problemtable";
+import Image from "next/image";
+
+const WatsonxChat = dynamic(() => import("./watsonxchat"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-full">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+        <p className="text-sm text-gray-600">Carregando watsonx Chat...</p>
+      </div>
+    </div>
+  ),
+});
+
+// Configuração do watsonx Orchestrate
+interface WatsonxConfig {
+  orchestrationID: string;
+  hostURL: string;
+  crn: string;
+  agentId: string;
+  agentEnvironmentId: string;
 }
 
-interface Idea {
-  id: number;
-  title: string;
-  content: string;
-  impact: "Alto" | "Médio" | "Baixo";
-  urgency: "Alta" | "Média" | "Baixa";
-  complexity: "Alta" | "Média" | "Baixa";
-  status: "Em Análise" | "Aprovada" | "Rejeitada" | "Implementada";
-  timestamp: Date;
-  author: string;
-}
+type ActiveView = "dashboard" | "ideas" | "problems" | "analytics";
 
-interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  role: string;
-  department: string;
-}
-
-type ActiveView = "dashboard" | "chat" | "ideas" | "problems" | "analytics";
-
-// Watson Chat Service (inline)
-class WatsonChatService {
-  private conversationId: string | null = null;
-
-  async sendMessage(message: string, userId: string): Promise<any> {
-    try {
-      // Tentar conectar com Watson primeiro
-      const response = await fetch("/api/watson/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message,
-          userId,
-          conversationId: this.conversationId,
-          metadata: {
-            source: "caixa-sandbox",
-            timestamp: new Date().toISOString(),
-          },
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-
-        if (data.success) {
-          // Watson funcionando - usar resposta real
-          if (data.data.conversationId) {
-            this.conversationId = data.data.conversationId;
-          }
-
-          return {
-            response: data.data.message || "Resposta não disponível",
-            confidence: data.data.metadata?.confidence || 0.8,
-            conversationId: data.data.conversationId,
-          };
-        }
-      }
-
-      // Se Watson falhar, usar fallback local
-      console.log("Watson indisponível, usando resposta local");
-      return this.generateLocalResponse(message, userId);
-    } catch (error) {
-      console.log("Erro na conexão Watson, usando fallback local:", error);
-      // Fallback local em caso de erro
-      return this.generateLocalResponse(message, userId);
-    }
-  }
-
-  private generateLocalResponse(message: string, userId: string): any {
-    // Gerar conversationId se não existir
-    if (!this.conversationId) {
-      this.conversationId = `local_${Date.now()}_${Math.random()
-        .toString(36)
-        .substr(2, 9)}`;
-    }
-
-    // Respostas inteligentes baseadas no conteúdo da mensagem
-    const lowerMessage = message.toLowerCase();
-    let response = "";
-
-    if (
-      lowerMessage.includes("olá") ||
-      lowerMessage.includes("oi") ||
-      lowerMessage.includes("bom dia")
-    ) {
-      response =
-        "Olá! Como posso ajudá-lo hoje? Estou aqui para analisar suas ideias e sugestões de inovação.";
-    } else if (
-      lowerMessage.includes("ideia") ||
-      lowerMessage.includes("proposta") ||
-      lowerMessage.includes("sugestão")
-    ) {
-      response =
-        "Interessante! Vou analisar sua ideia. Com base no que você descreveu, posso avaliar o impacto, urgência e complexidade da implementação.";
-    } else if (
-      lowerMessage.includes("como") &&
-      lowerMessage.includes("funciona")
-    ) {
-      response =
-        "Sou um assistente de inovação que ajuda a avaliar e classificar ideias. Você pode me contar suas propostas e eu fornecerei uma análise detalhada incluindo impacto, urgência e complexidade.";
-    } else if (
-      lowerMessage.includes("implementar") ||
-      lowerMessage.includes("desenvolver") ||
-      lowerMessage.includes("criar")
-    ) {
-      response =
-        "Ótima iniciativa! Para projetos de implementação, é importante considerar recursos necessários, cronograma e possíveis riscos. Posso ajudar a estruturar sua proposta.";
-    } else if (
-      lowerMessage.includes("automação") ||
-      lowerMessage.includes("automatizar")
-    ) {
-      response =
-        "Automação é uma excelente área para inovação! Pode trazer grandes benefícios em eficiência e redução de custos. Conte-me mais detalhes sobre o processo que você gostaria de automatizar.";
-    } else if (
-      lowerMessage.includes("mobile") ||
-      lowerMessage.includes("app") ||
-      lowerMessage.includes("aplicativo")
-    ) {
-      response =
-        "Aplicações mobile são muito relevantes hoje! Precisamos considerar a experiência do usuário, plataformas (Android/iOS), e integração com sistemas existentes. Qual seria o objetivo principal do app?";
-    } else if (
-      lowerMessage.includes("ia") ||
-      lowerMessage.includes("inteligência artificial") ||
-      lowerMessage.includes("machine learning")
-    ) {
-      response =
-        "Inteligência Artificial tem um potencial transformador enorme! É importante definir bem o problema que a IA vai resolver e ter dados de qualidade para treinamento. Que processo você gostaria de otimizar com IA?";
-    } else if (
-      lowerMessage.includes("dados") ||
-      lowerMessage.includes("analytics") ||
-      lowerMessage.includes("relatório")
-    ) {
-      response =
-        "Análise de dados é fundamental para tomada de decisões! Podemos explorar dashboards, relatórios automatizados ou até mesmo insights preditivos. Que tipo de informação seria mais valiosa?";
-    } else if (
-      lowerMessage.includes("segurança") ||
-      lowerMessage.includes("proteção")
-    ) {
-      response =
-        "Segurança é sempre prioridade! Precisamos balancear proteção com usabilidade. Conte-me mais sobre os aspectos de segurança que você gostaria de melhorar.";
-    } else if (
-      lowerMessage.includes("obrigado") ||
-      lowerMessage.includes("valeu") ||
-      lowerMessage.includes("muito bom")
-    ) {
-      response =
-        "Fico feliz em ajudar! Estou sempre aqui para analisar suas ideias e contribuir com o processo de inovação. Tem mais alguma proposta para discutirmos?";
-    } else if (
-      lowerMessage.includes("tchau") ||
-      lowerMessage.includes("até logo") ||
-      lowerMessage.includes("fim")
-    ) {
-      response =
-        "Até logo! Foi um prazer ajudar com suas ideias. Volte sempre que quiser discutir novas propostas de inovação!";
-    } else {
-      // Resposta genérica inteligente
-      response = `Entendo sua proposta sobre "${message.substring(0, 50)}${
-        message.length > 50 ? "..." : ""
-      }". Vou analisar os aspectos técnicos e de negócio para fornecer uma avaliação completa. Esta ideia tem potencial interessante!`;
-    }
-
-    return {
-      response,
-      confidence: 0.8,
-      conversationId: this.conversationId,
-      source: "local_fallback",
-    };
-  }
-
-  async analyzeIdea(ideaText: string, userId: string): Promise<any> {
-    try {
-      const response = await fetch("/api/watson/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ideaText,
-          userId,
-          conversationId: this.conversationId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erro na análise: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      if (!data.success) {
-        throw new Error(data.error || "Erro na análise da ideia");
-      }
-
-      return data.data;
-    } catch (error) {
-      console.error("Erro na análise da ideia:", error);
-      // Fallback para análise local
-      return this.fallbackAnalysis(ideaText);
-    }
-  }
-
-  private fallbackAnalysis(ideaText: string): any {
-    const text = ideaText.toLowerCase();
-
-    const impactKeywords = [
-      "inovação",
-      "revolucionar",
-      "transformar",
-      "disruptivo",
-      "novo",
-      "melhorar",
-    ];
-    const urgencyKeywords = [
-      "urgente",
-      "imediato",
-      "crítico",
-      "emergencial",
-      "rapidamente",
-    ];
-    const complexityKeywords = [
-      "sistema",
-      "integração",
-      "algoritmo",
-      "automação",
-      "inteligência",
-    ];
-
-    const impactScore = impactKeywords.filter((keyword) =>
-      text.includes(keyword)
-    ).length;
-    const urgencyScore = urgencyKeywords.filter((keyword) =>
-      text.includes(keyword)
-    ).length;
-    const complexityScore = complexityKeywords.filter((keyword) =>
-      text.includes(keyword)
-    ).length;
-
-    return {
-      impact: impactScore > 2 ? "Alto" : impactScore > 0 ? "Médio" : "Baixo",
-      urgency: urgencyScore > 1 ? "Alta" : urgencyScore > 0 ? "Média" : "Baixa",
-      complexity:
-        complexityScore > 2 ? "Alta" : complexityScore > 0 ? "Média" : "Baixa",
-      category: this.categorizeIdea(text),
-      feasibility: Math.min(
-        90,
-        Math.max(40, 70 - complexityScore * 10 + impactScore * 5)
-      ),
-      estimatedTime:
-        complexityScore > 2
-          ? "6-12 meses"
-          : complexityScore > 0
-          ? "3-6 meses"
-          : "1-3 meses",
-      requiredResources: ["Equipe técnica", "Orçamento aprovado"],
-      confidence: 0.6,
-    };
-  }
-
-  private categorizeIdea(text: string): string {
-    if (text.includes("mobile") || text.includes("app")) return "Mobile";
-    if (text.includes("web") || text.includes("site")) return "Web";
-    if (text.includes("ia") || text.includes("inteligência"))
-      return "Inteligência Artificial";
-    if (text.includes("automação")) return "Automação";
-    if (text.includes("dados")) return "Análise de Dados";
-    return "Geral";
-  }
-
-  clearSession(): void {
-    this.conversationId = null;
-  }
-}
-
-// Instância do serviço
+// Instância do serviço Watson
 const chatService = new WatsonChatService();
 
 export default function MainApp() {
-  // Chat states
+  const [isClient, setIsClient] = useState(false);
+
+  // Configuração do watsonx Orchestrate com valores reais
+  const [watsonxConfig] = useState<WatsonxConfig>({
+    orchestrationID:
+      "27826d743e244fb2ab37032e04663caf_ac89ebf4-26a5-44e4-ac21-50f0a9bb63ce",
+    hostURL: "https://eu-gb.watson-orchestrate.cloud.ibm.com",
+    crn: "crn:v1:bluemix:public:watsonx-orchestrate:eu-gb:a/27826d743e244fb2ab37032e04663caf:ac89ebf4-26a5-44e4-ac21-50f0a9bb63ce::",
+    agentId: "153fd93c-a591-4743-804c-820f1946db8f",
+    agentEnvironmentId: "b54cfa85-9608-4669-8eb1-a609fef3e5ea",
+  });
+
+  // Estados do chat local
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
@@ -317,10 +69,11 @@ export default function MainApp() {
   const [connectionStatus, setConnectionStatus] = useState<
     "connected" | "disconnected" | "connecting"
   >("disconnected");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // App states
+  // Estados da aplicação
   const [activeView, setActiveView] = useState<ActiveView>("dashboard");
+  const [selectedCategory, setSelectedCategory] = useState<string>("TODAS");
+  const [showChatWidget, setShowChatWidget] = useState(false);
   const [ideas, setIdeas] = useState<Idea[]>([
     {
       id: 1,
@@ -333,6 +86,8 @@ export default function MainApp() {
       status: "Em Análise",
       timestamp: new Date("2024-01-15"),
       author: "Maria Silva",
+      category: "ATENDIMENTO",
+      score: 85,
     },
     {
       id: 2,
@@ -345,6 +100,8 @@ export default function MainApp() {
       status: "Aprovada",
       timestamp: new Date("2024-01-14"),
       author: "João Santos",
+      category: "ATENDIMENTO",
+      score: 78,
     },
     {
       id: 3,
@@ -356,6 +113,8 @@ export default function MainApp() {
       status: "Implementada",
       timestamp: new Date("2024-01-13"),
       author: "Ana Costa",
+      category: "ATENDIMENTO",
+      score: 92,
     },
     {
       id: 4,
@@ -368,6 +127,8 @@ export default function MainApp() {
       status: "Em Análise",
       timestamp: new Date("2024-01-12"),
       author: "Carlos Lima",
+      category: "VAREJO",
+      score: 72,
     },
     {
       id: 5,
@@ -380,10 +141,224 @@ export default function MainApp() {
       status: "Rejeitada",
       timestamp: new Date("2024-01-11"),
       author: "Fernanda Rocha",
+      category: "TECNOLOGICA",
+      score: 45,
+    },
+    {
+      id: 6,
+      title: "Sistema de Gestão de Riscos",
+      content:
+        "Plataforma integrada para monitoramento e análise de riscos operacionais e financeiros em tempo real",
+      impact: "Alto",
+      urgency: "Alta",
+      complexity: "Alta",
+      status: "Aprovada",
+      timestamp: new Date("2024-01-10"),
+      author: "Roberto Silva",
+      category: "RISCOS",
+      score: 88,
+    },
+    {
+      id: 7,
+      title: "Portal de Compliance",
+      content:
+        "Sistema para monitoramento automático de conformidade regulatória e geração de relatórios",
+      impact: "Alto",
+      urgency: "Média",
+      complexity: "Média",
+      status: "Em Análise",
+      timestamp: new Date("2024-01-09"),
+      author: "Patricia Santos",
+      category: "COMPLIANCE",
+      score: 83,
+    },
+    {
+      id: 8,
+      title: "Programa de Sustentabilidade Digital",
+      content:
+        "Iniciativas para redução do impacto ambiental através de tecnologias verdes e eficiência energética",
+      impact: "Médio",
+      urgency: "Baixa",
+      complexity: "Média",
+      status: "Aprovada",
+      timestamp: new Date("2024-01-08"),
+      author: "Lucas Verde",
+      category: "SUSTENTABILIDADE",
+      score: 68,
     },
   ]);
 
-  const [user] = useState<UserProfile>({
+  const [problems, setProblems] = useState<Problem[]>([
+    {
+      id: 1,
+      title: "Sistema de Atendimento Lento",
+      description:
+        "Sistema de atendimento apresenta lentidão durante picos de demanda",
+      content:
+        "Sistema de atendimento fica lento durante picos de demanda, causando insatisfação dos clientes e perda de produtividade da equipe. O problema é mais crítico durante horários comerciais e finais de semana.",
+      priority: "Alta",
+      status: "Aberto",
+      timestamp: new Date("2025-08-20T04:18:13Z"),
+      author: "Maria Santos",
+      score: 85,
+      category: "TECNOLOGICA",
+      impact: "Alto",
+      urgency: "Alta",
+      complexity: "Média",
+    },
+    {
+      id: 2,
+      title: "Falhas no Sistema de Pagamento",
+      description:
+        "Falhas recorrentes no processamento de pagamentos aos finais de semana",
+      content:
+        "Falhas recorrentes no sistema de pagamento durante finais de semana, resultando em perda de vendas e insatisfação dos clientes. O sistema apresenta timeouts e erros de conexão com frequência.",
+      priority: "Alta",
+      status: "Em Progresso",
+      timestamp: new Date("2025-08-19T10:30:45Z"),
+      author: "João Silva",
+      score: 92,
+      category: "TECNOLOGICA",
+      impact: "Alto",
+      urgency: "Alta",
+      complexity: "Alta",
+    },
+    {
+      id: 3,
+      title: "Processo Manual de Aprovação de Férias",
+      description:
+        "Processo manual gera atrasos e retrabalho na gestão de férias",
+      content:
+        "Processo manual de aprovação de férias gera atrasos e retrabalho, impactando a produtividade da equipe de RH e causando insatisfação dos funcionários com demoras nas aprovações.",
+      priority: "Média",
+      status: "Aberto",
+      timestamp: new Date("2025-08-18T14:22:30Z"),
+      author: "Ana Costa",
+      score: 68,
+      category: "OPERACIONAL",
+      impact: "Médio",
+      urgency: "Média",
+      complexity: "Baixa",
+    },
+    {
+      id: 4,
+      title: "Dados Inconsistentes em Relatórios",
+      description: "Relatórios financeiros apresentam dados inconsistentes",
+      content:
+        "Relatórios financeiros são gerados com dados inconsistentes, causando problemas na tomada de decisão e necessidade de retrabalho constante para validação das informações.",
+      priority: "Alta",
+      status: "Resolvido",
+      timestamp: new Date("2025-08-17T09:15:20Z"),
+      author: "Carlos Oliveira",
+      score: 78,
+      category: "TECNOLOGICA",
+      impact: "Alto",
+      urgency: "Média",
+      complexity: "Média",
+    },
+    {
+      id: 5,
+      title: "Sistema de Compliance Inadequado",
+      description:
+        "Sistema não consegue rastrear transações suspeitas adequadamente",
+      content:
+        "Sistema de compliance não consegue rastrear adequadamente as transações suspeitas, criando riscos regulatórios e possíveis penalidades para a instituição.",
+      priority: "Alta",
+      status: "Em Progresso",
+      timestamp: new Date("2025-08-16T16:45:10Z"),
+      author: "Fernanda Lima",
+      score: 95,
+      category: "COMPLIANCE",
+      impact: "Alto",
+      urgency: "Alta",
+      complexity: "Alta",
+    },
+    {
+      id: 6,
+      title: "Análise de Crédito Demorada",
+      description:
+        "Demora excessiva na análise de risco de crédito impacta experiência",
+      content:
+        "Demora excessiva na análise de risco de crédito, impactando a experiência do cliente e resultando em perda de negócios por abandono do processo de solicitação.",
+      priority: "Alta",
+      status: "Aberto",
+      timestamp: new Date("2025-08-15T11:30:00Z"),
+      author: "Roberto Santos",
+      score: 82,
+      category: "OPERACIONAL",
+      impact: "Alto",
+      urgency: "Alta",
+      complexity: "Alta",
+    },
+    {
+      id: 7,
+      title: "Alto Consumo Energético dos Servidores",
+      description:
+        "Infraestrutura atual consome energia excessiva aumentando custos",
+      content:
+        "Alto consumo energético dos servidores aumenta custos operacionais e impacto ambiental, contrariando as metas de sustentabilidade da empresa.",
+      priority: "Média",
+      status: "Em Progresso",
+      timestamp: new Date("2025-08-14T08:20:15Z"),
+      author: "Patricia Rocha",
+      score: 65,
+      category: "SUSTENTABILIDADE",
+      impact: "Médio",
+      urgency: "Baixa",
+      complexity: "Média",
+    },
+    {
+      id: 8,
+      title: "Crashes no App Mobile Android",
+      description:
+        "Aplicativo apresenta crashes frequentes em dispositivos antigos",
+      content:
+        "Aplicativo mobile apresenta crashes frequentes em dispositivos Android antigos, afetando uma parcela significativa da base de usuários e gerando avaliações negativas na loja.",
+      priority: "Média",
+      status: "Aberto",
+      timestamp: new Date("2025-08-13T13:10:25Z"),
+      author: "Lucas Verde",
+      score: 72,
+      category: "TECNOLOGICA",
+      impact: "Médio",
+      urgency: "Média",
+      complexity: "Baixa",
+    },
+    {
+      id: 9,
+      title: "Backup de Dados Falho",
+      description: "Sistema de backup apresenta falhas intermitentes",
+      content:
+        "Sistema de backup de dados apresenta falhas intermitentes, criando riscos de perda de informações críticas e violação de políticas de segurança da informação.",
+      priority: "Alta",
+      status: "Aberto",
+      timestamp: new Date("2025-08-12T07:45:30Z"),
+      author: "Sandra Costa",
+      score: 88,
+      category: "TECNOLOGICA",
+      impact: "Alto",
+      urgency: "Alta",
+      complexity: "Média",
+    },
+    {
+      id: 10,
+      title: "Processo de Onboarding Ineficiente",
+      description: "Novo processo de integração de funcionários é muito lento",
+      content:
+        "Processo de onboarding de novos funcionários é ineficiente e demorado, resultando em baixa produtividade inicial e insatisfação dos novos colaboradores.",
+      priority: "Baixa",
+      status: "Fechado",
+      timestamp: new Date("2025-08-11T15:20:45Z"),
+      author: "Marcos Silva",
+      score: 45,
+      category: "OPERACIONAL",
+      impact: "Baixo",
+      urgency: "Baixa",
+      complexity: "Baixa",
+    },
+  ]);
+
+  const [user] = useState<User>({
     id: "1",
     name: "Sarah Morgans",
     email: "sarah.morgans@caixa.gov.br",
@@ -393,15 +368,46 @@ export default function MainApp() {
     department: "Tecnologia e Inovação",
   });
 
-  const scrollToBottom = (): void => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
+  // Verificar se está no cliente
   useEffect(() => {
-    if (activeView === "chat") {
-      scrollToBottom();
+    setIsClient(true);
+  }, []);
+
+  // Função para calcular score de uma ideia
+  const calculateIdeaScore = (idea: Idea): number => {
+    if (idea.score !== undefined) {
+      return idea.score;
     }
-  }, [messages, activeView]);
+
+    const getImpactValue = (impact: string): number => {
+      return { Alto: 3, Médio: 2, Baixo: 1 }[impact] || 1;
+    };
+
+    const getUrgencyValue = (urgency: string): number => {
+      return { Alta: 3, Média: 2, Baixa: 1 }[urgency] || 1;
+    };
+
+    const getComplexityValue = (complexity: string): number => {
+      return { Alta: 3, Média: 2, Baixa: 1 }[complexity] || 1;
+    };
+
+    const getStatusValue = (status: string): number => {
+      return (
+        { Implementada: 4, Aprovada: 3, "Em Análise": 2, Rejeitada: 1 }[
+          status
+        ] || 1
+      );
+    };
+
+    const impactScore = getImpactValue(idea.impact) * 0.4;
+    const urgencyScore = getUrgencyValue(idea.urgency) * 0.3;
+    const complexityScore = (4 - getComplexityValue(idea.complexity)) * 0.2;
+    const statusScore = getStatusValue(idea.status) * 0.1;
+
+    return Math.round(
+      (impactScore + urgencyScore + complexityScore + statusScore) * 10
+    );
+  };
 
   const handleSendMessage = async (): Promise<void> => {
     if (inputValue.trim() === "") return;
@@ -420,61 +426,16 @@ export default function MainApp() {
     setConnectionStatus("connecting");
 
     try {
-      // Enviar mensagem para Watson via API
       const watsonResponse = await chatService.sendMessage(
         currentInput,
         user.id
       );
-
       setConnectionStatus("connected");
-
-      // Verificar se é uma ideia para análise
-      const isIdea =
-        currentInput.length > 20 &&
-        (currentInput.toLowerCase().includes("ideia") ||
-          currentInput.toLowerCase().includes("proposta") ||
-          currentInput.toLowerCase().includes("sugestão") ||
-          currentInput.toLowerCase().includes("implementar") ||
-          currentInput.toLowerCase().includes("criar") ||
-          currentInput.toLowerCase().includes("desenvolver"));
-
-      let ideaAnalysis = null;
-      if (isIdea) {
-        try {
-          ideaAnalysis = await chatService.analyzeIdea(currentInput, user.id);
-
-          // Adicionar nova ideia à lista
-          const newIdea: Idea = {
-            id: ideas.length + 1,
-            title: `Ideia #${ideas.length + 1}`,
-            content:
-              currentInput.substring(0, 100) +
-              (currentInput.length > 100 ? "..." : ""),
-            impact: ideaAnalysis.impact,
-            urgency: ideaAnalysis.urgency,
-            complexity: ideaAnalysis.complexity,
-            status: "Em Análise",
-            timestamp: new Date(),
-            author: user.name,
-          };
-
-          setIdeas((prev) => [...prev, newIdea]);
-        } catch (analysisError) {
-          console.error("Erro na análise da ideia:", analysisError);
-        }
-      }
-
-      // Preparar resposta do agente
-      let agentContent = watsonResponse.response;
-
-      if (ideaAnalysis) {
-        agentContent += `\n\n📊 **Análise da Ideia:**\n• Impacto: ${ideaAnalysis.impact}\n• Urgência: ${ideaAnalysis.urgency}\n• Complexidade: ${ideaAnalysis.complexity}\n• Categoria: ${ideaAnalysis.category}\n• Viabilidade: ${ideaAnalysis.feasibility}%\n• Tempo estimado: ${ideaAnalysis.estimatedTime}`;
-      }
 
       const agentResponse: Message = {
         id: messages.length + 2,
         type: "agent",
-        content: agentContent,
+        content: watsonResponse.response,
         timestamp: new Date(),
         confidence: watsonResponse.confidence,
       };
@@ -484,12 +445,11 @@ export default function MainApp() {
       console.error("Erro ao enviar mensagem:", error);
       setConnectionStatus("disconnected");
 
-      // Resposta de fallback em caso de erro
       const errorResponse: Message = {
         id: messages.length + 2,
         type: "agent",
         content:
-          "Desculpe, estou enfrentando dificuldades de conexão no momento. Por favor, tente novamente em alguns instantes. Posso ajudá-lo com análise básica de ideias enquanto isso.",
+          "Desculpe, estou enfrentando dificuldades de conexão no momento. Por favor, tente novamente em alguns instantes.",
         timestamp: new Date(),
       };
 
@@ -508,84 +468,33 @@ export default function MainApp() {
     }
   };
 
-  const getConnectionStatusColor = () => {
-    switch (connectionStatus) {
-      case "connected":
-        return "text-green-600";
-      case "connecting":
-        return "text-yellow-600";
-      case "disconnected":
-        return "text-red-600";
-      default:
-        return "text-gray-600";
-    }
-  };
-
-  const getConnectionStatusText = () => {
-    switch (connectionStatus) {
-      case "connected":
-        return "Watson Conectado";
-      case "connecting":
-        return "Conectando...";
-      case "disconnected":
-        return "Desconectado";
-      default:
-        return "Status desconhecido";
-    }
+  const handleIdeaAction = (action: string, idea: Idea) => {
+    console.log(`${action} idea:`, idea);
   };
 
   const renderContent = () => {
-    switch (activeView) {
-      case 'dashboard':
-        return (
-          <div className="p-8 space-y-8">
-            <div className="mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard de Ideias</h1>
-              <p className="text-gray-600">Visão estratégica para tomada de decisão rápida</p>
-            </div>
-            
-            {/* Painel de Ações Rápidas */}
-            <QuickActionsPanel 
-              insights={{
-                total: ideas.length + apiIdeas.length,
-                quickWins: ideas.filter(i => i.impact === 'Alto' && i.complexity === 'Baixa').length,
-                priorities: ideas.filter(i => i.impact === 'Alto' && i.urgency === 'Alta').length,
-                approvalRate: Math.round((ideas.filter(i => i.status === 'Aprovada').length / Math.max(ideas.length, 1)) * 100),
-                avgScore: Math.round(ideas.reduce((sum, i) => sum + calculateIdeaScore(i), 0) / Math.max(ideas.length, 1))
-              }}
-              onAction={(action) => {
-                switch (action) {
-                  case 'create':
-                    handleIdeaAction('create');
-                    break;
-                  case 'quick-wins':
-                    setActiveView('ideas');
-                    // Aplicar filtro de quick wins
-                    break;
-                  case 'priorities':
-                    setActiveView('ideas');
-                    // Aplicar filtro de prioridades
-                    break;
-                  case 'review':
-                    setActiveView('ideas');
-                    // Aplicar filtro de pendentes
-                    break;
-                }
-              }}
-            />
-            
-            {/* Cards de Ideias */}
-            <DashboardCards 
-              ideas={[...ideas, ...apiIdeas]} 
-              onIdeaClick={(idea) => {
-                console.log('Ideia selecionada:', idea);
-                // Abrir modal de detalhes ou navegar
-              }}
-              onIdeaAction={(action, idea) => {
-                handleIdeaAction(action, idea);
-              }}
-            />
+    if (!isClient) {
+      return (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-pulse bg-gray-200 h-8 w-48 rounded mb-4"></div>
+            <div className="animate-pulse bg-gray-200 h-4 w-32 rounded"></div>
           </div>
+        </div>
+      );
+    }
+
+    switch (activeView) {
+      case "dashboard":
+        return (
+          <Dashboard
+            ideas={ideas}
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+            setActiveView={setActiveView}
+            calculateIdeaScore={calculateIdeaScore}
+            handleIdeaAction={handleIdeaAction}
+          />
         );
 
       case "ideas":
@@ -598,14 +507,6 @@ export default function MainApp() {
                   Gerencie todas as ideias submetidas
                 </p>
               </div>
-              <button
-                onClick={() => handleIdeaAction("create")}
-                className="flex items-center space-x-2 px-4 py-2 text-white rounded-lg hover:opacity-90 transition-colors"
-                style={{ backgroundColor: "#005CAA" }}
-              >
-                <Plus className="w-4 h-4" />
-                <span>Nova Ideia</span>
-              </button>
             </div>
             <IdeasTable
               ideas={ideas}
@@ -626,20 +527,13 @@ export default function MainApp() {
                   Acompanhe e resolva problemas reportados
                 </p>
               </div>
-              <button className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                <Plus className="w-4 h-4" />
-                <span>Reportar Problema</span>
-              </button>
             </div>
-            <div className="bg-white rounded-lg p-8 text-center border border-gray-200">
-              <AlertTriangle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Funcionalidade em Desenvolvimento
-              </h3>
-              <p className="text-gray-500">
-                O módulo de problemas estará disponível em breve.
-              </p>
-            </div>
+            <ProblemTable
+              problems={problems}
+              onView={(problem) => handleIdeaAction("view", problem)}
+              onEdit={(problem) => handleIdeaAction("edit", problem)}
+              onDelete={(problem) => handleIdeaAction("delete", problem)}
+            />
           </div>
         );
 
@@ -662,120 +556,9 @@ export default function MainApp() {
           </div>
         );
 
-      case "chat":
-        return (
-          <div className="flex h-full">
-            <div className="flex-1 flex flex-col bg-white">
-              <div className="p-6 border-b border-gray-200">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      Chat com Agente IA
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      Integrado com IBM Watson Orchestrate
-                    </p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div
-                      className={`w-2 h-2 rounded-full ${
-                        connectionStatus === "connected"
-                          ? "bg-green-500"
-                          : connectionStatus === "connecting"
-                          ? "bg-yellow-500"
-                          : "bg-red-500"
-                      }`}
-                    ></div>
-                    <span className={`text-sm ${getConnectionStatusColor()}`}>
-                      {getConnectionStatusText()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {messages.map((message) => (
-                  <ChatMessage key={message.id} message={message} />
-                ))}
-
-                {isTyping && (
-                  <div className="flex justify-start">
-                    <div className="flex items-start space-x-2 max-w-xs">
-                      <div className="w-8 h-8 rounded-full bg-gray-400 flex items-center justify-center text-white flex-shrink-0">
-                        <Bot className="w-4 h-4" />
-                      </div>
-                      <div className="bg-gray-100 rounded-lg px-4 py-2">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.1s" }}
-                          ></div>
-                          <div
-                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                            style={{ animationDelay: "0.2s" }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="border-t border-gray-200 p-4">
-                <div className="flex space-x-2">
-                  <textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Digite sua ideia aqui..."
-                    className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 resize-none"
-                    style={{ color: "#3A485A" }}
-                    rows={2}
-                    disabled={isTyping}
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={inputValue.trim() === "" || isTyping}
-                    className="px-6 py-2 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
-                    style={{ backgroundColor: "#005CAA" }}
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
       default:
         return null;
     }
-  };
-  // Adicionar no estado do componente MainApp:
-  const [isIdeaModalOpen, setIsIdeaModalOpen] = useState(false);
-
-  // Atualizar a função handleIdeaAction:
-  const handleIdeaAction = (action: string, idea?: Idea) => {
-    if (action === "create") {
-      setIsIdeaModalOpen(true);
-    } else if (idea) {
-      console.log(`${action} idea:`, idea);
-      // Implementar outras ações (view, edit, delete)
-    }
-  };
-
-  // Adicionar função para lidar com sucesso da criação:
-  const handleIdeaCreationSuccess = (newIdea: any) => {
-    // Adicionar a nova ideia à lista
-    setIdeas((prev) => [newIdea, ...prev]);
-
-    // Mostrar notificação de sucesso
-    alert("Ideia criada com sucesso!");
-
-    // Opcional: navegar para a aba de ideias
-    setActiveView("ideas");
   };
 
   return (
@@ -787,6 +570,12 @@ export default function MainApp() {
             className="w-8 h-8 rounded flex items-center justify-center text-white"
             style={{ backgroundColor: "#005CAA" }}
           >
+            <Image
+              src="/logoSandBox.jpg"
+              width={500}
+              height={500}
+              alt="Logo SandBox CAIXA"
+            />
             <Bot className="w-5 h-5" />
           </div>
           <div>
@@ -810,13 +599,66 @@ export default function MainApp() {
       {/* Main Content */}
       <div className="flex-1 ml-64 mt-16 overflow-auto">{renderContent()}</div>
 
-      {/* Modal de Criação de Ideia */}
-      <IdeaCreationModal
-        isOpen={isIdeaModalOpen}
-        onClose={() => setIsIdeaModalOpen(false)}
-        onSuccess={handleIdeaCreationSuccess}
-        currentUser={user}
-      />
+      {/* Floating Chat Widget */}
+      {showChatWidget && (
+        <div className="fixed bottom-6 right-6 z-50">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-96 h-[500px] flex flex-col overflow-hidden">
+            {/* Header do Chat Widget */}
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-4 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                    <Bot className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-sm">AI Assistant</h3>
+                    <p className="text-xs text-blue-100">watsonx Orchestrate</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowChatWidget(false)}
+                  className="text-white/80 hover:text-white transition-colors p-1"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* Conteúdo do Chat */}
+            <div className="flex-1 relative">
+              <WatsonxChat
+                orchestrationID={watsonxConfig.orchestrationID}
+                hostURL={watsonxConfig.hostURL}
+                crn={watsonxConfig.crn}
+                agentId={watsonxConfig.agentId}
+                agentEnvironmentId={watsonxConfig.agentEnvironmentId}
+                showLauncher={false}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Chat Button */}
+      {!showChatWidget && (
+        <button
+          onClick={() => setShowChatWidget(true)}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center group"
+        >
+          <Bot className="w-6 h-6 group-hover:scale-110 transition-transform" />
+
+          {/* Notification dot */}
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+            <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+          </span>
+
+          {/* Tooltip */}
+          <div className="absolute bottom-16 right-0 bg-gray-900 text-white text-xs px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            Chat com AI Assistant
+            <div className="absolute top-full right-3 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          </div>
+        </button>
+      )}
     </div>
   );
 }
