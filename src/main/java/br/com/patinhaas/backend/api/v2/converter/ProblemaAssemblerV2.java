@@ -1,7 +1,7 @@
 package br.com.patinhaas.backend.api.v2.converter;
 
-import br.com.patinhaas.backend.api.v2.dto.ProblemaRequestDTO;
-import br.com.patinhaas.backend.api.v2.dto.ProblemaResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.probelma.ProblemaRequestDTO;
+import br.com.patinhaas.backend.api.v2.dto.probelma.ProblemaResponseDTO;
 import br.com.patinhaas.backend.domain.model.Problema;
 import org.springframework.stereotype.Component;
 

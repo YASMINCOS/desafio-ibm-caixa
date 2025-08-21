@@ -1,31 +1,43 @@
-package br.com.patinhaas.backend.api.v2.dto;
+package br.com.patinhaas.backend.api.v2.dto.probelma;
 
 import br.com.patinhaas.backend.domain.model.enums.CategoriaEnum;
-import br.com.patinhaas.backend.domain.model.enums.Status;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProblemaResponseDTO {
+public class ProblemaRequestDTO {
 
-    private String id;
+    @NotBlank
     private String nome;
+
+    @NotBlank
     private String matricula;
+
+    @NotBlank
     private String unidade;
+
+    @NotBlank
+    @Email
     private String email;
+
+    @NotBlank
     private String problemaDescricao;
+
+    @NotBlank
     private String processo;
+
     private CategoriaEnum categoria;
+
     private BigDecimal impactoFinanceiro;
+
     private String tipoSolucaoEsperada;
-    private Status status;
-    private Double matchingScore;
-    private OffsetDateTime dataCriacao;
+
     private Integer impactoPessoas;
 }

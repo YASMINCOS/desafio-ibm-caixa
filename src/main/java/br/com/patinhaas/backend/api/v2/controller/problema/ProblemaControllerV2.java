@@ -1,8 +1,8 @@
 package br.com.patinhaas.backend.api.v2.controller.problema;
 
 import br.com.patinhaas.backend.api.v2.converter.ProblemaAssemblerV2;
-import br.com.patinhaas.backend.api.v2.dto.ProblemaRequestDTO;
-import br.com.patinhaas.backend.api.v2.dto.ProblemaResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.probelma.ProblemaRequestDTO;
+import br.com.patinhaas.backend.api.v2.dto.probelma.ProblemaResponseDTO;
 import br.com.patinhaas.backend.domain.model.Problema;
 import br.com.patinhaas.backend.domain.model.enums.Status;
 import br.com.patinhaas.backend.domain.repository.ProblemaRepository;

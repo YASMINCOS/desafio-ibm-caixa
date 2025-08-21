@@ -2,10 +2,10 @@ package br.com.patinhaas.backend.api.v2.controller.ideia;
 
 import br.com.patinhaas.backend.api.v2.converter.IdeiaAssemblerV2;
 import br.com.patinhaas.backend.api.v2.converter.ProblemaAssemblerV2;
-import br.com.patinhaas.backend.api.v2.dto.IdeiaRequestDTO;
-import br.com.patinhaas.backend.api.v2.dto.IdeiaResponseDTO;
-import br.com.patinhaas.backend.api.v2.dto.IdeiasSemelhantesResponseDTO;
-import br.com.patinhaas.backend.api.v2.dto.ProblemaComIdeiasResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiaRequestDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiaResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiasSemelhantesResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.ProblemaComIdeiasResponseDTO;
 import br.com.patinhaas.backend.domain.model.Ideia;
 import br.com.patinhaas.backend.domain.model.Problema;
 import br.com.patinhaas.backend.domain.model.enums.Status;

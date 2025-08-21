@@ -1,7 +1,7 @@
 package br.com.patinhaas.backend.domain.service;
 
 import br.com.patinhaas.backend.api.v2.converter.IdeiaAssemblerV2;
-import br.com.patinhaas.backend.api.v2.dto.IdeiasSemelhantesResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiasSemelhantesResponseDTO;
 import br.com.patinhaas.backend.domain.exception.IdeiaNotFoundException;
 import br.com.patinhaas.backend.domain.model.Ideia;
 import br.com.patinhaas.backend.domain.model.enums.CategoriaEnum;

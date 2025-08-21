@@ -1,4 +1,4 @@
-package br.com.patinhaas.backend.api.v2.dto;
+package br.com.patinhaas.backend.api.v2.dto.ideia;
 
 import br.com.patinhaas.backend.domain.model.enums.CategoriaEnum;
 import br.com.patinhaas.backend.domain.model.enums.Status;

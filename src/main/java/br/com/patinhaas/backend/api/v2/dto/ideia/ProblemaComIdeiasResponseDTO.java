@@ -1,6 +1,7 @@
-package br.com.patinhaas.backend.api.v2.dto;
+package br.com.patinhaas.backend.api.v2.dto.ideia;
 
 
+import br.com.patinhaas.backend.api.v2.dto.probelma.ProblemaResponseDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

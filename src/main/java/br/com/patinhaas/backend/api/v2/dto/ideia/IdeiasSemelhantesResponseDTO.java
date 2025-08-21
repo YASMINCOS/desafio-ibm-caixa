@@ -1,4 +1,4 @@
-package br.com.patinhaas.backend.api.v2.dto;
+package br.com.patinhaas.backend.api.v2.dto.ideia;
 
 
 import lombok.AllArgsConstructor;

@@ -1,7 +1,7 @@
 package br.com.patinhaas.backend.api.v2.converter;
 
-import br.com.patinhaas.backend.api.v2.dto.IdeiaRequestDTO;
-import br.com.patinhaas.backend.api.v2.dto.IdeiaResponseDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiaRequestDTO;
+import br.com.patinhaas.backend.api.v2.dto.ideia.IdeiaResponseDTO;
 import br.com.patinhaas.backend.domain.model.Ideia;
 import org.springframework.stereotype.Component;
 
