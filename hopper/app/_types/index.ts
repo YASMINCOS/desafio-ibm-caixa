@@ -1,6 +1,6 @@
 export interface Message {
   id: number;
-  type: 'user' | 'agent';
+  type: "user" | "agent";
   content: string;
   timestamp: Date;
 }
@@ -9,22 +9,30 @@ export interface Idea {
   id: number;
   title: string;
   content: string;
-  impact: 'Alto' | 'Médio' | 'Baixo';
-  urgency: 'Alta' | 'Média' | 'Baixa';
-  complexity: 'Alta' | 'Média' | 'Baixa';
-  status: 'Em Análise' | 'Aprovada' | 'Rejeitada' | 'Implementada';
+  category: string;
+  impact: "Alto" | "Médio" | "Baixo";
+  urgency: "Alta" | "Média" | "Baixa";
+  complexity: "Alta" | "Média" | "Baixa";
+  status: "Em Análise" | "Aprovada" | "Rejeitada" | "Implementada";
   timestamp: Date;
   author: string;
+  score?: number;
 }
 
 export interface Problem {
   id: number;
   title: string;
   description: string;
-  priority: 'Alta' | 'Média' | 'Baixa';
-  status: 'Aberto' | 'Em Progresso' | 'Resolvido' | 'Fechado';
+  content: string;
+  priority: "Alta" | "Média" | "Baixa";
+  status: "Aberto" | "Em Progresso" | "Resolvido" | "Fechado";
   timestamp: Date;
-  assignee?: string;
+  author?: string;
+  score?: number;
+  category: string;
+  impact: "Alto" | "Médio" | "Baixo";
+  urgency: "Alta" | "Média" | "Baixa";
+  complexity: "Alta" | "Média" | "Baixa";
 }
 
 export interface User {
@@ -36,4 +44,9 @@ export interface User {
   department: string;
 }
 
-export type ActiveView = 'dashboard' | 'chat' | 'ideas' | 'problems' | 'analytics';
+export type ActiveView =
+  | "dashboard"
+  | "chat"
+  | "ideas"
+  | "problems"
+  | "analytics";

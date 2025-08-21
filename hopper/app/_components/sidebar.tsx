@@ -1,112 +1,169 @@
+// sidebar.tsx - Versão sem opções de chat
 import React from "react";
 import {
-  Home,
-  MessageSquare,
+  LayoutDashboard,
   Lightbulb,
   AlertTriangle,
   BarChart3,
   Settings,
-  User as UserIconLucide,
-  Mail,
+  HelpCircle,
 } from "lucide-react";
-import Image from "next/image";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string;
-  role: string;
-  department: string;
-}
-
-type ActiveView = "dashboard" | "chat" | "ideas" | "problems" | "analytics";
 
 interface SidebarProps {
-  user: User;
-  activeView: ActiveView;
-  onViewChange: (view: ActiveView) => void;
+  user: any;
+  activeView: string;
+  onViewChange: (view: string) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
+export default function Sidebar({
   user,
   activeView,
   onViewChange,
-}) => {
+}: SidebarProps) {
   const menuItems = [
-    { id: "dashboard" as ActiveView, label: "Dashboard", icon: Home },
-    { id: "chat" as ActiveView, label: "Chat IA", icon: MessageSquare },
-    { id: "ideas" as ActiveView, label: "Ideias", icon: Lightbulb },
-    { id: "problems" as ActiveView, label: "Problemas", icon: AlertTriangle },
-    { id: "analytics" as ActiveView, label: "Análises", icon: BarChart3 },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      description: "Visão geral do sistema",
+    },
+    {
+      id: "ideas",
+      label: "Ideias",
+      icon: Lightbulb,
+      description: "Gerencie ideias inovadoras",
+    },
+    {
+      id: "problems",
+      label: "Problemas",
+      icon: AlertTriangle,
+      description: "Acompanhe problemas reportados",
+    },
+  ];
+
+  const bottomMenuItems = [
+    {
+      id: "settings",
+      label: "Configurações",
+      icon: Settings,
+      description: "Configurações do sistema",
+    },
+    {
+      id: "help",
+      label: "Ajuda",
+      icon: HelpCircle,
+      description: "Central de ajuda",
+    },
   ];
 
   return (
-    <div className="w-64 h-full bg-white shadow-lg flex flex-col">
+    <div className="w-64 bg-white shadow-lg h-full flex flex-col">
       {/* User Profile */}
       <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center space-x-3 mb-4">
-          <Image
+        <div className="flex items-center space-x-3">
+          <img
             src={user.avatar}
             alt={user.name}
-            width={32}
-            height={32}
-            className="w-12 h-12 rounded-full object-cover"
+            className="w-10 h-10 rounded-full object-cover"
           />
-          <div className="flex-1">
-            <h3 className="font-semibold text-gray-900">{user.name}</h3>
-            <p className="text-sm text-gray-500">{user.role}</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-sm font-medium text-gray-900 truncate">
+              {user.name}
+            </h3>
+            <p className="text-xs text-gray-500 truncate">{user.role}</p>
           </div>
         </div>
-
-        <div className="space-y-2 text-sm text-gray-600">
-          <div className="flex items-center space-x-2">
-            <Mail className="w-4 h-4" />
-            <span className="truncate">{user.email}</span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <UserIconLucide className="w-4 h-4" />
-            <span>{user.department}</span>
-          </div>
-        </div>
+        <div className="mt-3 text-xs text-gray-400">{user.department}</div>
       </div>
 
-      {/* Navigation Menu */}
+      {/* Navigation */}
       <nav className="flex-1 p-4">
         <div className="space-y-2">
+          <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+            Menu Principal
+          </div>
+
           {menuItems.map((item) => {
             const Icon = item.icon;
+            const isActive = activeView === item.id;
+
             return (
-              <button
-                key={item.id}
-                onClick={() => onViewChange(item.id)}
-                className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
-                  activeView === item.id
-                    ? "bg-blue-50 text-blue-700 border-r-2 border-blue-700"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-                style={{
-                  backgroundColor: activeView === item.id ? "#EBF5FF" : "",
-                  color: activeView === item.id ? "#005CAA" : "",
-                }}
-              >
-                <Icon className="w-5 h-5" />
-                <span className="font-medium">{item.label}</span>
-              </button>
+              <div key={item.id}>
+                <button
+                  onClick={() => onViewChange(item.id)}
+                  className={`w-full group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    isActive
+                      ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
+                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                  }`}
+                  title={item.description}
+                >
+                  <Icon
+                    className={`mr-3 h-5 w-5 flex-shrink-0 transition-colors ${
+                      isActive
+                        ? "text-blue-500"
+                        : "text-gray-400 group-hover:text-gray-500"
+                    }`}
+                  />
+                  <span className="truncate">{item.label}</span>
+
+                  {isActive && (
+                    <div className="ml-auto w-2 h-2 bg-blue-500 rounded-full"></div>
+                  )}
+                </button>
+              </div>
             );
           })}
         </div>
       </nav>
 
-      {/* Settings */}
+      {/* Chat Info Section */}
       <div className="p-4 border-t border-gray-200">
-        <button className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-          <Settings className="w-5 h-5" />
-          <span className="font-medium">Configurações</span>
-        </button>
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-100">
+          <div className="flex items-center space-x-2 mb-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs font-medium text-blue-700">
+              AI Assistant Online
+            </span>
+          </div>
+          <p className="text-xs text-blue-600 leading-relaxed">
+            Use o chat flutuante no canto inferior direito para conversar com o
+            AI Assistant
+          </p>
+        </div>
+      </div>
+
+      {/* Bottom Navigation */}
+      <div className="p-4 border-t border-gray-200">
+        <div className="space-y-1">
+          {bottomMenuItems.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  // Implementar ações para configurações e ajuda
+                  console.log(`Clicked ${item.id}`);
+                }}
+                className="w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg transition-colors"
+                title={item.description}
+              >
+                <Icon className="mr-3 h-4 w-4 text-gray-400" />
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200 bg-gray-50">
+        <div className="text-center">
+          <p className="text-xs text-gray-500">Sandbox CAIXA v2.0</p>
+          <p className="text-xs text-gray-400 mt-1">Powered by IBM Watson</p>
+        </div>
       </div>
     </div>
   );
-};
-
-export default Sidebar;
+}
